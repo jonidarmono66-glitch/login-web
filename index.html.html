@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Login Ujian</title>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #4e73df, #1cc88a);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 420px;
+        background: white;
+        padding: 25px;
+        border-radius: 18px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+
+    input, button, select {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    .title {
+        font-size: 22px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    .admin-link {
+        margin-top: 10px;
+        color: #1c4eff;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="title">Login Ujian</div>
+
+    <input type="text" id="username" placeholder="Masukkan Username (misal: 7A123)">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="login()">LOGIN</button>
+
+    <div class="admin-link" onclick="openAdmin()">Login Admin (Reset Username)</div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYUP3x_hTx10CqXDNO9muJ-iyP-n33HvTpjf_tWpBjzCWckpvV-a9nPG2C3F-ufySn/exec"; // GANTI DENGAN URL WEB APP GOOGLE SCRIPT
+
+const form7 = "https://docs.google.com/forms/d/e/xxxxxxx/viewform";
+const form8 = "https://forms.gle/Ymxjw4aRApHBZQ9C7";
+const form9 = "https://forms.gle/WdtWxbMcg4GY9iZt8";
+
+async function login() {
+    let user = document.getElementById("username").value.trim();
+    let pass = document.getElementById("password").value.trim();
+
+    if (!user || !pass) {
+        Swal.fire("Gagal", "Username dan password wajib diisi", "error");
+        return;
+    }
+
+    if (pass !== "asas2025") {
+        Swal.fire("Gagal", "Password salah!", "error");
+        return;
+    }
+
+    let first = user.charAt(0);
+    if (!["7","8","9"].includes(first)) {
+        Swal.fire("Error", "Format username salah!", "error");
+        return;
+    }
+
+    // CEK KE GOOGLE SHEET
+    Swal.showLoading();
+
+    let response = await fetch(SCRIPT_URL + "?check=" + user);
+    let result = await response.text();
+
+    if (result === "USED") {
+        Swal.fire("Gagal", "Username sudah dipakai!", "error");
+        return;
+    }
+
+    // SIMPAN USERNAME SEBAGAI TERPAKAI
+    await fetch(SCRIPT_URL + "?save=" + user);
+
+    Swal.fire("Berhasil", "Login berhasil! Anda akan diarahkan...", "success");
+
+    setTimeout(() => {
+        if (first === "7") window.location.href = form7;
+        if (first === "8") window.location.href = form8;
+        if (first === "9") window.location.href = form9;
+    }, 1200);
+}
+
+
+function openAdmin() {
+    Swal.fire({
+        title: "Login Admin",
+        input: "password",
+        inputLabel: "Masukkan Password Admin",
+        inputPlaceholder: "Password Admin",
+        showCancelButton: true
+    }).then(result => {
+        if (result.value === "admin2025") {
+            adminMenu();
+        } else if (result.value) {
+            Swal.fire("Gagal", "Password admin salah!", "error");
+        }
+    });
+}
+
+function adminMenu() {
+    Swal.fire({
+        title: "Reset Username",
+        text: "Klik tombol di bawah untuk mereset semua username.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "RESET",
+    }).then(async (r) => {
+        if (r.isConfirmed) {
+            await fetch(SCRIPT_URL + "?reset=all");
+            Swal.fire("Berhasil", "Semua username sudah direset!", "success");
+        }
+    });
+}
+</script>
+
+</body>
+</html>
